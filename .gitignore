@@ -1,0 +1,27 @@
+# Visual Studio user-specific files
+.vs/
+
+# Build output directories
+[Bb]in/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+
+# Compiled Object files
+*.obj
+
+# Executable files
+*.exe
+
+# Debug files
+*.pdb
+*.ilk
+
+# Intermediate files
+*.idb
+*.tlog
+
+# Visual Studio generated files
+*.suo
+*.user
