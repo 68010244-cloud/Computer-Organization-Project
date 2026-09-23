@@ -18,8 +18,5 @@
     <MASM Include="module_b_keygen.asm">
       <Filter>Source Files</Filter>
     </MASM>
-    <MASM Include="module_d_dump.asm">
-      <Filter>Source Files</Filter>
-    </MASM>
   </ItemGroup>
 </Project>

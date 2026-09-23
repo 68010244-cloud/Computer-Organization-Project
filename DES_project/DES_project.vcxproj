@@ -151,7 +151,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <MASM Include="module_b_keygen.asm" />
-    <MASM Include="module_d_dump.asm" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
