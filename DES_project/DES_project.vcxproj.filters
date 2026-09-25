@@ -18,5 +18,17 @@
     <MASM Include="module_b_keygen.asm">
       <Filter>Source Files</Filter>
     </MASM>
+    <MASM Include="module_c_DES.asm">
+      <Filter>Source Files</Filter>
+    </MASM>
+    <MASM Include="module_a_FSM.asm">
+      <Filter>Source Files</Filter>
+    </MASM>
+    <MASM Include="module_d_dumper.asm">
+      <Filter>Source Files</Filter>
+    </MASM>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="secret.txt" />
   </ItemGroup>
 </Project>

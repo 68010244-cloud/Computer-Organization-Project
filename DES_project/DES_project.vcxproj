@@ -151,6 +151,20 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <MASM Include="module_b_keygen.asm" />
+    <MASM Include="module_c_DES.asm" />
+  </ItemGroup>
+  <ItemGroup>
+    <MASM Include="module_a_FSM.asm">
+      <FileType>Document</FileType>
+    </MASM>
+  </ItemGroup>
+  <ItemGroup>
+    <MASM Include="module_d_dumper.asm">
+      <FileType>Document</FileType>
+    </MASM>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="secret.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
