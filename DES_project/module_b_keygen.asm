@@ -103,12 +103,13 @@ L_RoundLoop:
     
     mov eax, [ebp-4]
 L_ShiftC:
-    shl eax, 1           
-    bt eax, 28           
-    jnc C_NoCarry
-    bts eax, 0           
-    btr eax, 28          
-C_NoCarry:
+    ; Align the 28-bit half so ROL wraps its top bit to bit zero.
+    shl eax, 4
+    rol eax, 1
+    mov edx, eax
+    and edx, 1
+    shr eax, 4
+    or eax, edx
     dec ecx
     jnz L_ShiftC
     mov [ebp-4], eax     
@@ -116,12 +117,12 @@ C_NoCarry:
     movzx ecx, byte ptr [SHIFTS + edi]  
     mov eax, [ebp-8]
 L_ShiftD:
-    shl eax, 1
-    bt eax, 28
-    jnc D_NoCarry
-    bts eax, 0
-    btr eax, 28
-D_NoCarry:
+    shl eax, 4
+    rol eax, 1
+    mov edx, eax
+    and edx, 1
+    shr eax, 4
+    or eax, edx
     dec ecx
     jnz L_ShiftD
     mov [ebp-8], eax
@@ -183,8 +184,8 @@ PC2_Next:
     cmp eax, 16
     jl L_RoundLoop      
 
-    add esp, 20          
     popad                
+    mov esp, ebp        ; Restore registers before releasing local storage.
     mov eax, 1           
     pop ebp              
     ret

@@ -20,6 +20,7 @@ PUBLIC DisplayHistogram
     DumpBracket   BYTE "]", 0
     
     HistCount     DWORD 256 DUP(0)
+    HistOutput    DWORD 256 DUP(0) ; Optional second (post-encryption) buffer.
     pBuffer       DWORD 0    ; เก็บตำแหน่งของไฟล์ไว้ใช้หาลำดับ
     szBuffer      DWORD 0    ; เก็บขนาดของไฟล์
 
@@ -144,9 +145,10 @@ ComputeBufferStats PROC
     mov ebp, esp
     pushad
     
+    cld
     mov edi, OFFSET HistCount
     xor eax, eax
-    mov ecx, 256
+    mov ecx, 512
     rep stosd
     
     ; เก็บ Buffer Pointer และ Size ไว้ใช้ในฟังก์ชันถัดไป
@@ -157,12 +159,24 @@ ComputeBufferStats PROC
     
 CBS_Count:
     test ecx, ecx
-    jz CBS_Done
+    jz CBS_Output
     movzx eax, BYTE PTR [esi]
     inc DWORD PTR [HistCount + eax * 4]
     inc esi
     dec ecx
     jmp CBS_Count
+
+CBS_Output:
+    mov esi, [ebp+16]
+    mov ecx, [ebp+20]
+CBS_OutputCount:
+    test ecx, ecx
+    jz CBS_Done
+    movzx eax, BYTE PTR [esi]
+    inc DWORD PTR [HistOutput + eax * 4]
+    inc esi
+    dec ecx
+    jmp CBS_OutputCount
 
 CBS_Done:
     popad
@@ -175,8 +189,14 @@ ComputeBufferStats ENDP
 DisplayHistogram PROC
     push ebp
     mov ebp, esp
-    sub esp, 16          
+    sub esp, 1040
     pushad
+    ; Rank a copy so displaying the top five does not erase histogram bins.
+    cld
+    mov esi, OFFSET HistCount
+    lea edi, [ebp-1040]
+    mov ecx, 256
+    rep movsd
     
     mov edx, OFFSET DumpTitle
     call WriteString
@@ -195,7 +215,7 @@ DH_TopLoop:
 
 DH_FindMax:
     movzx eax, BYTE PTR [esi]
-    mov ebx, [HistCount + eax * 4]
+    mov ebx, [ebp-1040 + eax * 4]
     cmp ebx, [ebp - 4]
     jbe DH_SkipMax               ; ถ้าจำนวนน้อยกว่าหรือเท่ากับ (<=) ให้ข้าม (ตัวมาก่อนได้เปรียบ)
     mov [ebp - 4], ebx
@@ -247,7 +267,7 @@ PrintStars:
 
     ; ลบความถี่ของแชมป์รอบนี้ทิ้ง เพื่อหารองแชมป์ในรอบถัดไป
     mov eax, [ebp - 8]
-    mov dword ptr [HistCount + eax * 4], 0
+    mov dword ptr [ebp-1040 + eax * 4], 0
 
     inc dword ptr [ebp - 12]
     cmp dword ptr [ebp - 12], 5
