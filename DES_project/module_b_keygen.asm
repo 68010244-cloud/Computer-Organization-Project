@@ -35,6 +35,7 @@ GenerateKeySchedule PROC
     mov dword ptr [ebp-4], 0  
     mov dword ptr [ebp-8], 0  
 
+    ; PC-1 C
     mov esi, OFFSET PC1_C
     mov ecx, 28          
 L_PC1_C:
@@ -102,25 +103,25 @@ L_RoundLoop:
     
     mov eax, [ebp-4]
 L_ShiftC:
-    shl eax, 4
-    rol eax, 1
-    mov edx, eax
-    and edx, 1
-    shr eax, 4
-    or eax, edx
+    shl eax, 1           
+    bt eax, 28           
+    jnc C_NoCarry
+    bts eax, 0           
+    btr eax, 28          
+C_NoCarry:
     dec ecx
     jnz L_ShiftC
-    mov [ebp-4], eax
+    mov [ebp-4], eax     
     
-    movzx ecx, byte ptr [SHIFTS + edi]
+    movzx ecx, byte ptr [SHIFTS + edi]  
     mov eax, [ebp-8]
 L_ShiftD:
-    shl eax, 4
-    rol eax, 1
-    mov edx, eax
-    and edx, 1
-    shr eax, 4
-    or eax, edx
+    shl eax, 1
+    bt eax, 28
+    jnc D_NoCarry
+    bts eax, 0
+    btr eax, 28
+D_NoCarry:
     dec ecx
     jnz L_ShiftD
     mov [ebp-8], eax
@@ -159,8 +160,11 @@ PC2_SetLow:
     bts edx, eax         
     jmp PC2_Next
 PC2_SetHigh:
-    sub eax, 32
-    bts ebx, eax
+    push ecx
+    mov cl, 32
+    sub eax, ecx         
+    bts ebx, eax        
+    pop ecx
 PC2_Next:
     inc esi
     dec ecx
@@ -179,11 +183,10 @@ PC2_Next:
     cmp eax, 16
     jl L_RoundLoop      
 
-
-    popad
-    mov esp, ebp
-    mov eax, 1
-    pop ebp
+    add esp, 20          
+    popad                
+    mov eax, 1           
+    pop ebp              
     ret
 GenerateKeySchedule ENDP
 END
