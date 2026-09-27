@@ -15,6 +15,8 @@ DisplayHistogram PROTO
     errorMsg    BYTE "Error: Unknown command or syntax error.", 0
     exitMsg     BYTE "Exiting DES Command-Line Shell...", 0
     errFile     BYTE "Error: Cannot open or create file.", 0
+    errSize     BYTE "Error: File is too large! Maximum allowed size for ENCRYPT is 65,528 bytes.", 0
+    errDecrypt  BYTE "Error: Decryption failed! Incorrect key, corrupted file, or not a valid DES ciphertext.", 0
     
     msgLoad1    BYTE "Loading ", 0
     msgLoad2    BYTE " (", 0
@@ -27,6 +29,7 @@ DisplayHistogram PROTO
     msgQuote    BYTE 22h, 0
     msgStat1    BYTE "Total File Size: ", 0
     msgStat2    BYTE " Bytes", 0
+    msgStat3 BYTE "Byte Frequency Analysis: Displaying Top 5 Occurrences", 0
    
 
     encExt      BYTE ".enc", 0
@@ -139,6 +142,8 @@ DoKeygen:
     push OFFSET subkeys
     push OFFSET userKey
     call GenerateKeySchedule
+
+    call Crlf
     jmp ShellLoop
 
 DoEncrypt:
@@ -149,6 +154,14 @@ DoEncrypt:
     cmp eax, 0
     je ShellLoop
     
+    cmp fileSize, 65528
+    jbe SizeIsOk
+    mov edx, OFFSET errSize
+    call WriteString
+    call Crlf
+    jmp ShellLoop
+
+SizeIsOk:
     mov edx, OFFSET msgLoad1
     call WriteString
     mov edx, OFFSET fileName
@@ -178,12 +191,17 @@ DoEncrypt:
     push OFFSET subkeys
     push OFFSET userKey
     call GenerateKeySchedule
+    
     push OFFSET subkeys
     push 65536          
     push OFFSET fileBuffer
     push fileSize
     push OFFSET fileBuffer
-    call EncryptECB
+    call EncryptECB             
+
+    cmp eax, 0FFFFFFFFh         
+    je EncryptFailed            
+    
     mov fileSize, eax   
     
     push OFFSET encExt
@@ -198,6 +216,13 @@ DoEncrypt:
     call WriteString
     call Crlf
     
+    call Crlf
+    jmp ShellLoop
+
+EncryptFailed:
+    mov edx, OFFSET errSize  
+    call WriteString
+    call Crlf
     jmp ShellLoop
 
 DoDecrypt:
@@ -243,7 +268,10 @@ DoDecrypt:
     push fileSize
     push OFFSET fileBuffer
     call DecryptECB
-    mov fileSize, eax
+    cmp eax, 0FFFFFFFFh      
+    je DecryptFailed         
+    
+    mov fileSize, eax        
     
     push OFFSET decExt
     call MakeOutputName
@@ -257,6 +285,15 @@ DoDecrypt:
     call WriteString
     call Crlf
 
+    call Crlf
+    jmp ShellLoop            
+
+DecryptFailed:
+    mov edx, OFFSET errDecrypt
+    call WriteString
+    call Crlf
+    
+    call Crlf
     jmp ShellLoop
 
 DoDump:
@@ -272,6 +309,8 @@ DoDump:
     push fileSize
     push OFFSET fileBuffer
     call DisplayHexDump
+
+    call Crlf
     jmp ShellLoop
 
 DoStats:
@@ -291,6 +330,9 @@ DoStats:
     mov edx, OFFSET msgStat2
     call WriteString
     call Crlf
+    mov edx, OFFSET msgStat3
+    call WriteString
+    call Crlf
     
     push 0
     push OFFSET fileBuffer
@@ -298,6 +340,8 @@ DoStats:
     push OFFSET fileBuffer
     call ComputeBufferStats
     call DisplayHistogram
+
+    call Crlf
     jmp ShellLoop
 
 DoTxt2Bin:
@@ -323,11 +367,15 @@ DoTxt2Bin:
     mov edx, OFFSET msgQuote
     call WriteString
     call Crlf
+
+    call Crlf
     jmp ShellLoop
 
 ParseError:
     mov edx, OFFSET errorMsg
     call WriteString
+    call Crlf
+
     call Crlf
     jmp ShellLoop
 main ENDP
@@ -412,13 +460,18 @@ MakeOutputName PROC
     pushad
     mov esi, OFFSET fileName
     mov edi, OFFSET outFileName
+    mov ecx, 250         
 CopyName:
+    cmp ecx, 0           
+    je AppendExt         
+    
     mov al, [esi]
     cmp al, 0
     je AppendExt
     mov [edi], al
     inc esi
     inc edi
+    dec ecx              
     jmp CopyName
 AppendExt:
     mov esi, [ebp+8] 
@@ -537,6 +590,46 @@ HSkip:
     jmp Find0x
 Found0x:
     add esi, 2
+    push esi           
+    mov ecx, 16        
+CheckLenLoop:
+    mov al, [esi]
+    cmp al, 0
+    je BadKeyLen       
+    cmp al, ' '
+    je BadKeyLen  
+    cmp al, '0'
+    jb InvalidHex      
+    cmp al, '9'
+    jbe HexOk          
+    
+    cmp al, 'A'
+    jb InvalidHex      
+    cmp al, 'F'
+    jbe HexOk          
+    
+    cmp al, 'a'
+    jb InvalidHex      
+    cmp al, 'f'
+    jbe HexOk          
+InvalidHex:
+    pop esi            
+    jmp HFail          
+HexOk:
+    inc esi
+    dec ecx
+    jnz CheckLenLoop
+    
+    mov al, [esi]
+    cmp al, 0
+    je KeyLenOk
+    cmp al, ' '
+    je KeyLenOk
+BadKeyLen:
+    pop esi            
+    jmp HFail          
+KeyLenOk:
+    pop esi            
     mov ecx, 8      
 HLoop:
     mov al, [esi]
