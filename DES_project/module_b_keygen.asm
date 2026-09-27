@@ -35,7 +35,6 @@ GenerateKeySchedule PROC
     mov dword ptr [ebp-4], 0  
     mov dword ptr [ebp-8], 0  
 
-    ; PC-1 C
     mov esi, OFFSET PC1_C
     mov ecx, 28          
 L_PC1_C:
@@ -133,7 +132,7 @@ D_NoCarry:
 L_PC2:
     movzx eax, byte ptr [esi]  
     cmp eax, 28
-    ja PC2_FromD         
+    ja PC2_FromD           
 PC2_FromC:
     push ecx
     mov cl, 28
@@ -160,11 +159,8 @@ PC2_SetLow:
     bts edx, eax         
     jmp PC2_Next
 PC2_SetHigh:
-    push ecx
-    mov cl, 32
-    sub eax, ecx         
-    bts ebx, eax        
-    pop ecx
+    sub eax, 32
+    bts ebx, eax
 PC2_Next:
     inc esi
     dec ecx
@@ -183,10 +179,11 @@ PC2_Next:
     cmp eax, 16
     jl L_RoundLoop      
 
-    add esp, 20          
-    popad                
-    mov eax, 1           
-    pop ebp              
+
+    popad
+    mov esp, ebp
+    mov eax, 1
+    pop ebp
     ret
 GenerateKeySchedule ENDP
 END
