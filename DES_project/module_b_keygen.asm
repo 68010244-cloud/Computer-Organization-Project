@@ -26,8 +26,8 @@ GenerateKeySchedule PROC
     pushad
     
    mov esi, [ebp+8]     
-    mov eax, [esi]       ; <--- แก้เป็น [esi] เพื่อดึง 4 ไบต์แรก (Bits 1-32)
-    mov edx, [esi+4]     ; <--- แก้เป็น [esi+4] เพื่อดึง 4 ไบต์หลัง (Bits 33-64)
+    mov eax, [esi]       
+    mov edx, [esi+4]     
     bswap eax            
     bswap edx
     mov [ebp-12], eax    
@@ -103,13 +103,12 @@ L_RoundLoop:
     
     mov eax, [ebp-4]
 L_ShiftC:
-    ; Align the 28-bit half so ROL wraps its top bit to bit zero.
-    shl eax, 4
-    rol eax, 1
-    mov edx, eax
-    and edx, 1
-    shr eax, 4
-    or eax, edx
+    shl eax, 1           
+    bt eax, 28           
+    jnc C_NoCarry
+    bts eax, 0           
+    btr eax, 28          
+C_NoCarry:
     dec ecx
     jnz L_ShiftC
     mov [ebp-4], eax     
@@ -117,12 +116,12 @@ L_ShiftC:
     movzx ecx, byte ptr [SHIFTS + edi]  
     mov eax, [ebp-8]
 L_ShiftD:
-    shl eax, 4
-    rol eax, 1
-    mov edx, eax
-    and edx, 1
-    shr eax, 4
-    or eax, edx
+    shl eax, 1
+    bt eax, 28
+    jnc D_NoCarry
+    bts eax, 0
+    btr eax, 28
+D_NoCarry:
     dec ecx
     jnz L_ShiftD
     mov [ebp-8], eax
@@ -184,8 +183,8 @@ PC2_Next:
     cmp eax, 16
     jl L_RoundLoop      
 
+    add esp, 20          
     popad                
-    mov esp, ebp        ; Restore registers before releasing local storage.
     mov eax, 1           
     pop ebp              
     ret
