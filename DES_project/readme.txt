@@ -3,19 +3,19 @@
 Computer Engineering and Cyber Security, KMITL
 
 
-สมาชิกในกลุ่ม
+1. สมาชิกในกลุ่ม
+
 1) รหัสนักศึกษา: 68010608
    ชื่อ-นามสกุล: นิธิมา สุเนตร
-   ความรับผิดชอบ:พัฒนาโค้ด module_a_FSM และ module_b_keygen
+   ความรับผิดชอบ: พัฒนาโค้ด module_a_FSM และ module_b_keygen
 
 2) รหัสนักศึกษา: 68010244
    ชื่อ-นามสกุล: ชาลิสา เทพยาน
-   ความรับผิดชอบ:พัฒนาโค้ด module_c_DES
+   ความรับผิดชอบ: พัฒนาโค้ด module_c_DES
 
 3) รหัสนักศึกษา: 68010993
    ชื่อ-นามสกุล: วรัณญา บุญทอย
-   ความรับผิดชอบ:พัฒนาโค้ด module_d_dumper
-   
+   ความรับผิดชอบ: พัฒนาโค้ด module_d_dumper
 
 
 2. รายละเอียดโครงงาน
@@ -42,6 +42,7 @@ External Encryption Library ในการคำนวณ Key Schedule หร�
    รับ DES key ขนาด 64 bits และสร้าง Key Schedule จำนวน 16 Subkeys
    (K01-K16) สำหรับใช้ในการเข้ารหัสและถอดรหัส
 
+
 2) ENCRYPT
    รูปแบบ:
       ENCRYPT "secret.txt" 0x133457799BBCDFF1
@@ -49,12 +50,14 @@ External Encryption Library ในการคำนวณ Key Schedule หร�
    อ่านข้อมูลจากไฟล์ plaintext เข้ารหัสด้วย DES ในโหมด ECB
    พร้อม PKCS#7 Padding และสร้างไฟล์ผลลัพธ์โดยต่อท้ายชื่อไฟล์ด้วย .enc
 
+
 3) DECRYPT
    รูปแบบ:
       DECRYPT "secret.txt.enc" 0x133457799BBCDFF1
 
    อ่าน ciphertext จากไฟล์ ถอดรหัสด้วย DES โดยใช้ Subkeys ในลำดับย้อนกลับ
    ตรวจสอบและนำ PKCS#7 Padding ออก จากนั้นสร้างไฟล์ผลลัพธ์โดยต่อท้าย .dec
+
 
 4) DUMP
    รูปแบบ:
@@ -64,6 +67,7 @@ External Encryption Library ในการคำนวณ Key Schedule หร�
    ค่า Hexadecimal และ ASCII หากเป็นอักขระที่ไม่สามารถพิมพ์ได้
    (ค่าต่ำกว่า 20h หรือสูงกว่า 7Eh) จะแสดงเป็นจุด (.)
 
+
 5) STATS
    รูปแบบ:
       STATS "secret.txt"
@@ -71,11 +75,13 @@ External Encryption Library ในการคำนวณ Key Schedule หร�
    คำนวณความถี่ของ byte pattern ด้วย Histogram จำนวน 256 bins
    และแสดง byte ที่มีความถี่สูงสุด 5 อันดับแรก
 
+
 6) CLEAR
    รูปแบบ:
       CLEAR
 
    ล้างหน้าจอและกลับไปรอรับคำสั่งถัดไป
+
 
 7) EXIT
    รูปแบบ:
@@ -84,17 +90,58 @@ External Encryption Library ในการคำนวณ Key Schedule หร�
    จบการทำงานของโปรแกรม
 
 
+8) TXT2BIN (Text-to-Binary Utility)
+   รูปแบบ:
+      TXT2BIN "secret.txt"
+
+   เป็นคำสั่ง Utility สำหรับเตรียมไฟล์ทดสอบที่เก็บข้อมูลในรูปแบบ
+   ตัวอักษรเลขฐานสิบหก (Hexadecimal Text) ให้เป็นข้อมูลไบนารีจริง
+   (Raw Binary Bytes) ก่อนนำไปใช้กับคำสั่ง ENCRYPT
+
+   โปรแกรมจะอ่านตัวอักษรเลขฐานสิบหกจากไฟล์ข้อความ โดยละเว้นช่องว่าง
+   และอักขระขึ้นบรรทัดใหม่ จากนั้นจะแปลงตัวอักษรเลขฐานสิบหกทุก 2 ตัว
+   ให้เป็นข้อมูลขนาด 1 byte และบันทึกผลลัพธ์ลงในไฟล์ใหม่โดยต่อท้าย
+   ชื่อไฟล์ด้วย .bin
+
+   ตัวอย่าง:
+   หากไฟล์ secret.txt มีข้อมูล:
+
+      0123456789ABCDEF
+
+   เมื่อใช้คำสั่ง:
+
+      TXT2BIN "secret.txt"
+
+   โปรแกรมจะสร้างไฟล์:
+
+      secret.txt.bin
+
+   โดยภายในไฟล์จะประกอบด้วย Raw Binary Bytes จำนวน 8 bytes:
+
+      01 23 45 67 89 AB CD EF
+
+   ไฟล์ .bin ที่ได้สามารถนำไปใช้เป็น Plaintext สำหรับทดสอบ DES
+   Test Vector ด้วยคำสั่ง ENCRYPT ได้อย่างถูกต้อง
+
+
 4. โครงสร้างโปรแกรม
+
 Module A: module_a_FSM.asm
 - เป็น Shell Core และ FSM Command Parser
 - ทำ REPL สำหรับรับคำสั่งจาก Console
-- วิเคราะห์คำสั่ง KEYGEN, ENCRYPT, DECRYPT, DUMP, STATS, CLEAR และ EXIT
+- วิเคราะห์คำสั่ง KEYGEN, ENCRYPT, DECRYPT, DUMP, STATS, CLEAR,
+  EXIT และ TXT2BIN
 - FSM ใช้สถานะสำหรับการอ่านช่องว่าง, token, quoted token, หลังปิด quote,
   จุดสิ้นสุด และ input ที่ไม่ถูกต้อง
 - ตรวจสอบจำนวน argument และรูปแบบของคำสั่ง
 - ตรวจสอบ DES key ในรูปแบบ 0x ตามด้วยเลขฐาน 16 จำนวน 16 หลัก
+- แปลง DES key จาก Hexadecimal Text ให้เป็น Raw Key ขนาด 8 bytes
+  ก่อนส่งให้ Module B
+- รองรับ TXT2BIN สำหรับแปลงข้อมูล Hexadecimal Text ในไฟล์ทดสอบ
+  ให้เป็น Raw Binary Bytes
 - เรียกใช้งาน Key Schedule, DES ECB, Hex Dump และ Statistics
 - จัดการการอ่านและเขียนไฟล์ รวมถึงแสดงข้อความ Error เมื่อเกิดข้อผิดพลาด
+
 
 Module B: module_b_keygen.asm
 - สร้าง DES Key Schedule จำนวน 16 Subkeys
@@ -104,6 +151,7 @@ Module B: module_b_keygen.asm
 - ทำ Left Circular Rotation ตามจำนวนรอบที่ DES กำหนด
 - ทำ Permuted Choice 2 (PC-2)
 - สร้าง Subkey ขนาด 48 bits จำนวน 16 ค่า
+
 
 Module C: module_c_DES.asm
 - เป็น DES 16-Round Feistel Core Engine
@@ -117,6 +165,7 @@ Module C: module_c_DES.asm
 - ประมวลผลไฟล์ในโหมด ECB
 - รองรับ PKCS#7 Padding และตรวจสอบ Padding ขณะถอดรหัส
 
+
 Module D: module_d_dumper.asm
 - DisplayHexDump แสดงข้อมูล 16 bytes ต่อบรรทัดในรูปแบบ Hex และ ASCII
 - แสดง non-printable character เป็นจุด (.)
@@ -125,6 +174,7 @@ Module D: module_d_dumper.asm
 
 
 5. รูปแบบ DES ที่ใช้
+
 - Block Size: 64 bits (8 bytes)
 - Key Input: 64 bits
 - Effective DES Key: 56 bits และ parity 8 bits
@@ -151,6 +201,8 @@ DES key ให้มี prefix 0x และมีเลขฐาน 16 จำน
 - การอ่านหรือเขียนไฟล์ล้มเหลว
 - ไฟล์มีขนาดเกิน Buffer ที่กำหนด
 - Ciphertext หรือ PKCS#7 Padding ไม่ถูกต้อง
+- ข้อมูลสำหรับ TXT2BIN มีตัวอักษรที่ไม่ใช่เลขฐานสิบหก
+  หรือมีจำนวน Hexadecimal digits ไม่ถูกต้อง
 
 ขนาด File Buffer ที่ใช้ในโปรแกรมรองรับข้อมูลสูงสุด 65,536 bytes
 และจะปฏิเสธไฟล์ที่มีขนาดเกินขอบเขตแทนการตัดข้อมูลทิ้ง
@@ -187,16 +239,52 @@ Target Architecture:
 
 ใช้ Test Vector ตามที่กำหนดใน Assignment:
 
-Plaintext:
+Plaintext (Hexadecimal, 64-bit):
    0123456789ABCDEF
 
-Key:
+Key (Hexadecimal, 64-bit):
    133457799BBCDFF1
 
-Expected Ciphertext:
+Expected Ciphertext (Hexadecimal, 64-bit):
    85E813540F0AB405
 
-ใช้ Test Vector นี้เพื่อตรวจสอบความถูกต้องของการสร้าง Key Schedule
+ค่า Plaintext ที่แสดงด้านบนเป็นข้อมูลเลขฐานสิบหกขนาด 64 bits
+ซึ่งหมายถึง Raw Binary Bytes จำนวน 8 bytes ดังนี้:
+
+   01 23 45 67 89 AB CD EF
+
+ไม่ได้หมายถึง ASCII String "0123456789ABCDEF" ซึ่งมีขนาด 16 bytes
+
+เพื่อเตรียม Test Vector สามารถสร้างไฟล์ข้อความที่มีข้อมูล:
+
+   0123456789ABCDEF
+
+จากนั้นใช้คำสั่ง:
+
+   TXT2BIN "secret.txt"
+
+โปรแกรมจะสร้าง:
+
+   secret.txt.bin
+
+ซึ่งมี Raw Binary Bytes:
+
+   01 23 45 67 89 AB CD EF
+
+จากนั้นสามารถทดสอบ DES ด้วย:
+
+   ENCRYPT "secret.txt.bin" 0x133457799BBCDFF1
+
+Ciphertext Block แรกที่ได้ควรมีค่า:
+
+   85 E8 13 54 0F 0A B4 05
+
+เนื่องจากโปรแกรมใช้ PKCS#7 Padding เมื่อ Plaintext มีขนาด 8 bytes พอดี
+โปรแกรมจะเพิ่ม Padding Block ขนาด 8 bytes อีกหนึ่ง Block ดังนั้นไฟล์
+Ciphertext ที่ได้จาก ENCRYPT จะมีขนาดรวม 16 bytes โดย DES Test Vector
+ข้างต้นใช้ตรวจสอบ Ciphertext Block แรก
+
+Test Vector นี้ใช้สำหรับตรวจสอบความถูกต้องของการสร้าง Key Schedule
 และกระบวนการ Encryption/Decryption ของ DES
 
 
@@ -204,15 +292,16 @@ Expected Ciphertext:
 
 DES-SHELL> KEYGEN 0x133457799BBCDFF1
 
-DES-SHELL> DUMP "secret.txt"
+DES-SHELL> TXT2BIN "secret.txt"
 
-DES-SHELL> ENCRYPT "secret.txt" 0x133457799BBCDFF1
+DES-SHELL> DUMP "secret.txt.bin"
 
-DES-SHELL> DUMP "secret.txt.enc"
+DES-SHELL> ENCRYPT "secret.txt.bin" 0x133457799BBCDFF1
 
-DES-SHELL> STATS "secret.txt.enc"
+DES-SHELL> DUMP "secret.txt.bin.enc"
 
-DES-SHELL> DECRYPT "secret.txt.enc" 0x133457799BBCDFF1
+DES-SHELL> STATS "secret.txt.bin.enc"
+
+DES-SHELL> DECRYPT "secret.txt.bin.enc" 0x133457799BBCDFF1
 
 DES-SHELL> EXIT
-
