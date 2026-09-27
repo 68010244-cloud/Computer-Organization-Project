@@ -195,13 +195,10 @@ Module D: module_d_dumper.asm
 โปรแกรมตรวจสอบชื่อคำสั่ง แยกชื่อไฟล์ที่อยู่ในเครื่องหมายคำพูด
 และค้นหา DES key ที่ขึ้นต้นด้วย 0x ก่อนดำเนินการ
 
-โปรแกรมมีการจัดการข้อผิดพลาดพื้นฐาน เช่น
-- คำสั่งหรือรูปแบบคำสั่งไม่ถูกต้อง
-- ไม่สามารถเปิดหรือสร้างไฟล์ได้
-- ขนาด Ciphertext ไม่สอดคล้องกับ DES Block Size
-- PKCS#7 Padding ไม่ถูกต้อง
+โปรแกรมมีการจัดการข้อผิดพลาดพื้นฐาน 
+- ไฟล์มีขนาดใหญ่เกินไป ขนาดสูงสุดที่อนุญาตสำหรับ ENCRYPT คือ 65,528 ไบต์
+- การถอดรหัสล้มเหลว คีย์ไม่ถูกต้อง ไฟล์เสียหาย หรือไม่ใช่ข้อความเข้ารหัส DES ที่ถูกต้อง
 
-File Buffer ที่ใช้ในโปรแกรมมีขนาด 65,536 bytes
 7. สภาพแวดล้อมและการ Build
 
 Target Architecture:
@@ -222,11 +219,7 @@ Target Architecture:
 - module_b_keygen.asm
 - module_c_DES.asm
 - module_d_dumper.asm
-- DES_project.vcxproj
-- Irvine32.inc
-- Irvine32.lib
-- SmallWin.inc
-- VirtualKeys.inc
+- Irvine32 library 
 
 
 8. Test Vector สำหรับตรวจสอบ DES
