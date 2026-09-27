@@ -18,12 +18,14 @@ PUBLIC DisplayHistogram
     DumpCountText BYTE " occurrences [", 0
     DumpStarChar  BYTE "*", 0
     DumpBracket   BYTE "]", 0
-    
+
     HistCount     DWORD 256 DUP(0)
-    pBuffer       DWORD 0    
-    szBuffer      DWORD 0    
+    HistOutput    DWORD 256 DUP(0)
+    pBuffer       DWORD 0
+    szBuffer      DWORD 0
 
 .code
+
 DisplayHexDump PROC
     push ebp
     mov ebp, esp
@@ -34,11 +36,11 @@ DisplayHexDump PROC
     call WriteString
     call Crlf
 
-    mov eax, [ebp + 8]   
+    mov eax, [ebp + 8]
     mov [ebp - 4], eax
-    mov eax, [ebp + 12]  
+    mov eax, [ebp + 12]
     mov [ebp - 8], eax
-    mov dword ptr [ebp - 16], 0 
+    mov dword ptr [ebp - 16], 0
 
 HD_Row:
     cmp dword ptr [ebp - 8], 0
@@ -64,10 +66,12 @@ HD_HexColumn:
     and eax, 0Fh
     mov al, [DumpHexDigits + eax]
     call WriteChar
+
     mov eax, ebx
     and eax, 0Fh
     mov al, [DumpHexDigits + eax]
     call WriteChar
+
     mov al, ' '
     call WriteChar
     jmp HD_NextHex
@@ -93,13 +97,15 @@ HD_AsciiColumn:
     jae HD_RowEnd
     cmp eax, [ebp - 8]
     jae HD_AsciiPadding
-    
+
     mov esi, [ebp - 4]
     movzx eax, BYTE PTR [esi + eax]
+
     cmp eax, 20h
     jb HD_NonPrintable
     cmp eax, 7Eh
     ja HD_NonPrintable
+
     call WriteChar
     jmp HD_NextAscii
 
@@ -111,16 +117,18 @@ HD_NonPrintable:
 HD_AsciiPadding:
     mov al, ' '
     call WriteChar
-    
+
 HD_NextAscii:
     inc dword ptr [ebp - 12]
     jmp HD_AsciiColumn
 
 HD_RowEnd:
     call Crlf
+
     mov eax, [ebp - 8]
     cmp eax, 16
     jbe HD_LastRow
+
     sub dword ptr [ebp - 8], 16
     add dword ptr [ebp - 4], 16
     add dword ptr [ebp - 16], 16
@@ -136,6 +144,7 @@ HD_Done:
     pop ebp
     mov eax, 1
     ret 8
+
 DisplayHexDump ENDP
 
 
@@ -143,61 +152,97 @@ ComputeBufferStats PROC
     push ebp
     mov ebp, esp
     pushad
-    
+
+    cld
     mov edi, OFFSET HistCount
     xor eax, eax
     mov ecx, 256
     rep stosd
-    
-    mov esi, [ebp + 8] 
+
+    mov edi, OFFSET HistOutput
+    xor eax, eax
+    mov ecx, 256
+    rep stosd
+
+    mov esi, [ebp + 8]
     mov [pBuffer], esi
-    mov ecx, [ebp + 12] 
+
+    mov ecx, [ebp + 12]
     mov [szBuffer], ecx
-    
+
 CBS_Count:
     test ecx, ecx
-    jz CBS_Done
+    jz CBS_Output
+
     movzx eax, BYTE PTR [esi]
     inc DWORD PTR [HistCount + eax * 4]
+
     inc esi
     dec ecx
     jmp CBS_Count
+
+CBS_Output:
+    mov esi, [ebp + 16]
+    mov ecx, [ebp + 20]
+
+CBS_OutputCount:
+    test ecx, ecx
+    jz CBS_Done
+
+    movzx eax, BYTE PTR [esi]
+    inc DWORD PTR [HistOutput + eax * 4]
+
+    inc esi
+    dec ecx
+    jmp CBS_OutputCount
 
 CBS_Done:
     popad
     pop ebp
     mov eax, 1
     ret 16
+
 ComputeBufferStats ENDP
 
 
 DisplayHistogram PROC
     push ebp
     mov ebp, esp
-    sub esp, 16          
+    sub esp, 1040
     pushad
-    
+
+    cld
+    mov esi, OFFSET HistCount
+    lea edi, [ebp - 1040]
+    mov ecx, 256
+    rep movsd
+
     mov edx, OFFSET DumpTitle
     call WriteString
     call Crlf
-    mov dword ptr [ebp - 12], 1   
+
+    mov dword ptr [ebp - 12], 1
 
 DH_TopLoop:
-    mov dword ptr [ebp - 4], 0   ; max_val
-    mov dword ptr [ebp - 8], 0   ; max_byte
-    
+    mov dword ptr [ebp - 4], 0
+    mov dword ptr [ebp - 8], 0
+
     mov esi, [pBuffer]
     mov ecx, [szBuffer]
+
     test ecx, ecx
     jz DH_PrintTop
 
 DH_FindMax:
     movzx eax, BYTE PTR [esi]
-    mov ebx, [HistCount + eax * 4]
+    mov ebx, [ebp - 1040 + eax * 4]
+
     cmp ebx, [ebp - 4]
-    jbe DH_SkipMax               
+    jbe DH_SkipMax
+
     mov [ebp - 4], ebx
     mov [ebp - 8], eax
+
 DH_SkipMax:
     inc esi
     dec ecx
@@ -209,41 +254,47 @@ DH_PrintTop:
 
     mov eax, [ebp - 12]
     call WriteDec
+
     mov al, '.'
     call WriteChar
 
     mov edx, OFFSET DumpByteText1
     call WriteString
+
     mov eax, [ebp - 8]
     shr eax, 4
     and eax, 0Fh
     mov al, [DumpHexDigits + eax]
     call WriteChar
+
     mov eax, [ebp - 8]
     and eax, 0Fh
     mov al, [DumpHexDigits + eax]
     call WriteChar
+
     mov edx, OFFSET DumpByteText2
     call WriteString
-    
+
     mov eax, [ebp - 4]
     call WriteDec
+
     mov edx, OFFSET DumpCountText
     call WriteString
-    
+
     mov ecx, [ebp - 4]
-PrintStars:
+
+DH_PrintStars:
     mov edx, OFFSET DumpStarChar
     call WriteString
     dec ecx
-    jnz PrintStars
+    jnz DH_PrintStars
 
     mov edx, OFFSET DumpBracket
-    call WriteString            
+    call WriteString
     call Crlf
 
     mov eax, [ebp - 8]
-    mov dword ptr [HistCount + eax * 4], 0
+    mov dword ptr [ebp - 1040 + eax * 4], 0
 
     inc dword ptr [ebp - 12]
     cmp dword ptr [ebp - 12], 5
@@ -255,5 +306,7 @@ DH_Done:
     pop ebp
     mov eax, 1
     ret
+
 DisplayHistogram ENDP
+
 END

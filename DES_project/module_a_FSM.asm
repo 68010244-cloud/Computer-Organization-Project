@@ -27,7 +27,7 @@ DisplayHistogram PROTO
     msgQuote    BYTE 22h, 0
     msgStat1    BYTE "Total File Size: ", 0
     msgStat2    BYTE " Bytes", 0
-    msgStat3    BYTE "Entropy Statistics: High Diffusion (Ciphertext Uniformity Check PASSED)", 0
+   
 
     encExt      BYTE ".enc", 0
     decExt      BYTE ".dec", 0
@@ -292,10 +292,6 @@ DoStats:
     call WriteString
     call Crlf
     
-    mov edx, OFFSET msgStat3
-    call WriteString
-    call Crlf
-
     push 0
     push OFFSET fileBuffer
     push fileSize
