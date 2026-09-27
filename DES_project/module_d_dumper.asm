@@ -10,7 +10,7 @@ PUBLIC DisplayHistogram
 .data
     DumpHeader    BYTE "[Address]  00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F  | ASCII", 0
     DumpHexDigits BYTE "0123456789ABCDEF"
-    DumpHexSpace  BYTE "  ", 0
+    DumpHexSpace  BYTE "   ", 0
     DumpAsciiBar  BYTE "  | ", 0
     DumpTitle     BYTE "Top Byte Occurrences:", 0
     DumpByteText1 BYTE " [0x", 0
