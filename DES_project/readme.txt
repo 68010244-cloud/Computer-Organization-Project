@@ -69,7 +69,7 @@ External Encryption Library ในการคำนวณ Key Schedule หร�
       STATS "secret.txt"
 
    คำนวณความถี่ของ byte pattern ด้วย Histogram จำนวน 256 bins
-   และแสดง byte ที่มีความถี่สูงสุด
+   และแสดง byte ที่มีความถี่สูงสุด 5 อันดับแรก
 
 6) CLEAR
    รูปแบบ:
